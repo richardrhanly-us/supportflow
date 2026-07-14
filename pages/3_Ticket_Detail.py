@@ -143,6 +143,14 @@ with left_column:
         f"**Priority:** {selected_ticket.priority}"
     )
 
+    # Display the communication source for the support request.
+    #
+    # This helps model an omnichannel B2B support workflow such as Slack,
+    # Microsoft Teams, email, web chat, or manually entered tickets.
+    st.write(
+        f"**Channel:** {selected_ticket.channel}"
+    )
+
     st.write(
         f"**Assigned to:** "
         f"{selected_ticket.assigned_to or 'Unassigned'}"

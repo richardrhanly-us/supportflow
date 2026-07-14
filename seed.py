@@ -62,6 +62,10 @@ with SessionLocal() as db:
                         "10–15 minutes late."
                     ),
                     priority="High",
+
+                    # This sample ticket originated through Slack.
+                    channel="Slack",
+
                     assigned_to="Richard",
                 ),
                 Ticket(
@@ -72,6 +76,10 @@ with SessionLocal() as db:
                         "inviting a teammate."
                     ),
                     priority="Urgent",
+
+                    # This sample ticket originated through Microsoft Teams.
+                    channel="Microsoft Teams",
+
                     assigned_to=None,
                 ),
             ]

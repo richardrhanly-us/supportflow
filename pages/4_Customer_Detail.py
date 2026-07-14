@@ -283,10 +283,13 @@ else:
                     f"{ticket.subject}"
                 )
 
-                # Display the ticket's main workflow information.
+                # Display the ticket's main workflow information, including the
+                # communication channel that created the request.
                 st.write(
                     f"**Priority:** "
                     f"{ticket.priority}  \n"
+                    f"**Channel:** "
+                    f"{ticket.channel}  \n"
                     f"**Assigned to:** "
                     f"{ticket.assigned_to or 'Unassigned'}  \n"
                     f"**Created:** "

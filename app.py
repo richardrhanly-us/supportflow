@@ -104,9 +104,11 @@ else:
             left.markdown(
                 f"**#{ticket.id} — {ticket.subject}**"
             )
+            # Display the customer, priority, source channel, and current assignment.
             left.write(
                 f"{ticket.customer.company_name} · "
                 f"{ticket.priority} priority · "
+                f"{ticket.channel} · "
                 f"Assigned to: {ticket.assigned_to or 'Unassigned'}"
             )
 

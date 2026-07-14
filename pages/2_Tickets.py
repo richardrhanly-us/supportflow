@@ -120,6 +120,20 @@ with st.expander("Create ticket", expanded=False):
             ],
         )
 
+        # Identify where the support request originated.
+        #
+        # These channels reflect common B2B post-sales communication sources.
+        channel = st.selectbox(
+            "Channel",
+            [
+                "Slack",
+                "Microsoft Teams",
+                "Email",
+                "Web Chat",
+                "Manual",
+            ],
+        )
+
         # Optionally assign the ticket to a support employee.
         assigned_to = st.text_input(
             "Assigned to",
@@ -145,6 +159,10 @@ with st.expander("Create ticket", expanded=False):
                         subject=subject.strip(),
                         description=description.strip(),
                         priority=priority,
+
+                        # Save the communication channel selected in the form.
+                        channel=channel,
+
                         assigned_to=assigned_to.strip() or None,
                     )
 
@@ -290,6 +308,7 @@ else:
                     f"**Customer:** "
                     f"{ticket.customer.company_name}  \n"
                     f"**Priority:** {ticket.priority}  \n"
+                    f"**Channel:** {ticket.channel}  \n"
                     f"**Assigned to:** "
                     f"{ticket.assigned_to or 'Unassigned'}  \n"
                     f"**Created:** "
