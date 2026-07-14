@@ -1,0 +1,19 @@
+# Python virtual environments
+.venv/
+venv/
+
+# Python-generated files
+__pycache__/
+*.pyc
+*.pyo
+
+# Local environment variables and secrets
+.env
+
+# Local development database
+supportflow.db
+
+# Editor and operating-system files
+.vscode/
+.DS_Store
+Thumbs.db
