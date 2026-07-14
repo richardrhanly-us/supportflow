@@ -92,6 +92,14 @@ class Ticket(Base):
         default="Open",
     )
 
+    # Record where the support request originated.
+    #
+    # This helps model an omnichannel B2B support workflow such as Slack,
+    # Microsoft Teams, email, web chat, or a manually entered request.
+    channel: Mapped[str] = mapped_column(
+        String(30),
+        default="Manual",
+    )
     # assigned_to is optional because a new ticket may initially be unassigned.
     assigned_to: Mapped[Optional[str]] = mapped_column(
         String(120),
