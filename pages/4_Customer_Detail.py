@@ -373,12 +373,20 @@ else:
     # Each result contains the TicketUpdate object, ticket subject, and ID.
     for update, ticket_subject, ticket_id in recent_updates:
         with st.container(border=True):
+            # Display the type of conversation entry or activity event.
             st.write(
                 f"**{update.update_type}**"
             )
 
+            # Show who created the message, note, or system event.
+            st.caption(
+                f"Author: {update.author}"
+            )
+
+            # Display the message, note, or event description.
             st.write(update.update_text)
 
+            # Show the related ticket and the time the activity was recorded.
             st.caption(
                 f"Ticket #{ticket_id} — "
                 f"{ticket_subject} · "

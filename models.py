@@ -146,12 +146,36 @@ class TicketUpdate(Base):
         ForeignKey("tickets.id"),
     )
 
-    # Store the note content and identify its activity type.
+    # Store the content of the conversation message or activity event.
     update_text: Mapped[str] = mapped_column(Text)
+
+
+    # Identify what kind of activity occurred.
+    #
+    # Supported types currently include:
+    #
+    # - Customer message
+    # - Agent reply
+    # - Internal note
+    # - Status change
     update_type: Mapped[str] = mapped_column(
         String(30),
         default="Internal note",
     )
+
+
+    # Record the person or system responsible for the activity.
+    #
+    # Examples include:
+    #
+    # - A customer contact name
+    # - A support-agent name
+    # - "System" for automated status changes
+    author: Mapped[str] = mapped_column(
+        String(120),
+        default="System",
+    )
+
 
     # Preserve the time each update was added.
     created_at: Mapped[datetime] = mapped_column(
