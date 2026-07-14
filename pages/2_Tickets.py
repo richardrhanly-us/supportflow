@@ -29,6 +29,55 @@ from db import SessionLocal, init_db
 # This page only needs the Customer and Ticket models.
 from models import Customer, Ticket
 
+def suggest_priority(subject: str, description: str) -> str:
+    """
+    Recommend a ticket priority using simple keyword-based triage rules.
+
+    The function combines the subject and description, converts the text to
+    lowercase, and checks for terms associated with urgent or high-impact
+    support problems.
+
+    This is a transparent rule-based recommendation rather than a machine
+    learning model. The user can still override the suggested value.
+    """
+
+    # Combine both ticket fields into one searchable string.
+    ticket_text = f"{subject} {description}".lower()
+
+    # Terms that suggest a severe outage, security issue, or complete blocker.
+    urgent_terms = [
+        "outage",
+        "system down",
+        "production down",
+        "critical",
+        "security breach",
+        "data loss",
+        "cannot access",
+        "completely blocked",
+    ]
+
+    # Terms that suggest major degradation without a complete outage.
+    high_terms = [
+        "blocked",
+        "error",
+        "failing",
+        "unable to",
+        "not working",
+        "delayed",
+        "degraded",
+        "login issue",
+    ]
+
+    # Return Urgent as soon as one urgent term is found.
+    if any(term in ticket_text for term in urgent_terms):
+        return "Urgent"
+
+    # Return High when no urgent term matched but a high-impact term did.
+    if any(term in ticket_text for term in high_terms):
+        return "High"
+
+    # Use Medium as the default recommendation for ordinary support requests.
+    return "Medium"
 
 # Configure the browser tab and use a wide layout for the ticket queue.
 st.set_page_config(
@@ -99,25 +148,28 @@ with st.expander("Create ticket", expanded=False):
             list(customer_options.keys()),
         )
 
-        # Enter a short ticket title.
         subject = st.text_input(
             "Subject",
         )
 
-        # Enter the complete description of the support problem.
         description = st.text_area(
             "Description",
         )
 
-        # Select the urgency of the issue.
+
+        # Define the valid priority choices.
+        priority_choices = [
+            "Low",
+            "Medium",
+            "High",
+            "Urgent",
+        ]
+
+        # Allow the user to select the final ticket priority.
         priority = st.selectbox(
             "Priority",
-            [
-                "Low",
-                "Medium",
-                "High",
-                "Urgent",
-            ],
+            priority_choices,
+            index=1,
         )
 
         # Identify where the support request originated.
@@ -145,6 +197,22 @@ with st.expander("Create ticket", expanded=False):
         )
 
         if submitted:
+            # Calculate the rule-based recommendation after the form is submitted.
+            suggested_priority = suggest_priority(
+                subject,
+                description,
+            )
+
+            # Show how the selected priority compares with the recommendation.
+            if priority == suggested_priority:
+                st.success(
+                    f"Priority matches recommendation: {suggested_priority}"
+                )
+            else:
+                st.warning(
+                    f"Suggested priority: {suggested_priority}. "
+                    f"You selected: {priority}."
+                )
             # Reject missing or whitespace-only subjects and descriptions.
             if not subject.strip() or not description.strip():
                 st.error(
