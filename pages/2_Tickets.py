@@ -132,118 +132,122 @@ customer_options = {
 }
 
 
-# Place the ticket creation form inside an expandable section.
+# Place the ticket creation controls inside an expandable section.
 #
-# collapsed by default keeps the ticket queue visible when the page first opens.
+# These widgets are not inside a Streamlit form so the page reruns whenever
+# the subject or description changes. This allows the priority recommendation
+# to update immediately while the user enters the ticket.
 with st.expander("Create ticket", expanded=False):
-    # A Streamlit form processes all fields together when the user clicks
-    # Create ticket.
-    with st.form(
-        "new_ticket",
-        clear_on_submit=True,
+    # Select the customer connected to the new ticket.
+    selected_customer = st.selectbox(
+        "Customer",
+        list(customer_options.keys()),
+        key="new_ticket_customer",
+    )
+
+    # Enter the ticket subject.
+    subject = st.text_input(
+        "Subject",
+        key="new_ticket_subject",
+    )
+
+    # Enter the complete support-request description.
+    description = st.text_area(
+        "Description",
+        key="new_ticket_description",
+    )
+
+    # Calculate the recommendation every time Streamlit reruns the page.
+    suggested_priority = suggest_priority(
+        subject,
+        description,
+    )
+
+    # Only display a recommendation after the user has entered ticket text.
+    if subject.strip() or description.strip():
+        st.info(
+            f"Suggested priority: {suggested_priority}"
+        )
+    else:
+        st.caption(
+            "Enter a subject or description to receive "
+            "a priority recommendation."
+        )
+
+    # Define the valid priority choices.
+    priority_choices = [
+        "Low",
+        "Medium",
+        "High",
+        "Urgent",
+    ]
+
+    # Allow the user to choose the final priority.
+    #
+    # The recommendation is displayed above, but the user remains in control
+    # of the stored priority value.
+    priority = st.selectbox(
+        "Priority",
+        priority_choices,
+        index=priority_choices.index(
+            suggested_priority
+        ),
+        key="new_ticket_priority",
+    )
+
+    # Identify where the support request originated.
+    channel = st.selectbox(
+        "Channel",
+        [
+            "Slack",
+            "Microsoft Teams",
+            "Email",
+            "Web Chat",
+            "Manual",
+        ],
+        key="new_ticket_channel",
+    )
+
+    # Optionally assign the ticket to a support employee.
+    assigned_to = st.text_input(
+        "Assigned to",
+        key="new_ticket_assigned_to",
+    )
+
+    # Process ticket creation when the user clicks the button.
+    if st.button(
+        "Create ticket",
+        key="create_ticket_button",
     ):
-        # Select the customer connected to the new ticket.
-        selected_customer = st.selectbox(
-            "Customer",
-            list(customer_options.keys()),
-        )
-
-        subject = st.text_input(
-            "Subject",
-        )
-
-        description = st.text_area(
-            "Description",
-        )
-
-
-        # Define the valid priority choices.
-        priority_choices = [
-            "Low",
-            "Medium",
-            "High",
-            "Urgent",
-        ]
-
-        # Allow the user to select the final ticket priority.
-        priority = st.selectbox(
-            "Priority",
-            priority_choices,
-            index=1,
-        )
-
-        # Identify where the support request originated.
-        #
-        # These channels reflect common B2B post-sales communication sources.
-        channel = st.selectbox(
-            "Channel",
-            [
-                "Slack",
-                "Microsoft Teams",
-                "Email",
-                "Web Chat",
-                "Manual",
-            ],
-        )
-
-        # Optionally assign the ticket to a support employee.
-        assigned_to = st.text_input(
-            "Assigned to",
-        )
-
-        # Process the form when the user clicks this button.
-        submitted = st.form_submit_button(
-            "Create ticket",
-        )
-
-        if submitted:
-            # Calculate the rule-based recommendation after the form is submitted.
-            suggested_priority = suggest_priority(
-                subject,
-                description,
+        # Reject missing or whitespace-only subjects and descriptions.
+        if not subject.strip() or not description.strip():
+            st.error(
+                "Subject and description are required."
             )
-
-            # Show how the selected priority compares with the recommendation.
-            if priority == suggested_priority:
-                st.success(
-                    f"Priority matches recommendation: {suggested_priority}"
+        else:
+            # Open a database session for the insert operation.
+            with SessionLocal() as db:
+                ticket = Ticket(
+                    customer_id=customer_options[selected_customer],
+                    subject=subject.strip(),
+                    description=description.strip(),
+                    priority=priority,
+                    channel=channel,
+                    assigned_to=assigned_to.strip() or None,
                 )
-            else:
-                st.warning(
-                    f"Suggested priority: {suggested_priority}. "
-                    f"You selected: {priority}."
-                )
-            # Reject missing or whitespace-only subjects and descriptions.
-            if not subject.strip() or not description.strip():
-                st.error(
-                    "Subject and description are required."
-                )
-            else:
-                # Open a new database session for the insert operation.
-                with SessionLocal() as db:
-                    # Create the Ticket object from the submitted form values.
-                    ticket = Ticket(
-                        customer_id=customer_options[selected_customer],
-                        subject=subject.strip(),
-                        description=description.strip(),
-                        priority=priority,
 
-                        # Save the communication channel selected in the form.
-                        channel=channel,
+                db.add(ticket)
+                db.commit()
 
-                        assigned_to=assigned_to.strip() or None,
-                    )
+            st.success("Ticket created.")
 
-                    # Add the ticket to the current transaction.
-                    db.add(ticket)
+            # Clear the ticket-entry widgets after the database commit.
+            st.session_state["new_ticket_subject"] = ""
+            st.session_state["new_ticket_description"] = ""
+            st.session_state["new_ticket_assigned_to"] = ""
 
-                    # Save the ticket permanently.
-                    db.commit()
-
-                st.success("Ticket created.")
-
-                # Reload the page so the new ticket appears in the queue.
-                st.rerun()
+            # Reload the page so the new ticket appears in the queue.
+            st.rerun()
 
 
 # Separate the creation form from the search and filtering controls.
