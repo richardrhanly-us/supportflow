@@ -45,6 +45,16 @@ class Customer(Base):
         default="Standard",
     )
 
+
+    # Represent the overall condition of the customer account.
+    #
+    # Post-sales teams use account health to quickly identify customers who may
+    # need additional attention, follow-up, or escalation.
+    health_status: Mapped[str] = mapped_column(
+        String(20),
+        default="Healthy",
+    )
+    
     # Record when the customer account was created.
     created_at: Mapped[datetime] = mapped_column(
         DateTime,
@@ -151,7 +161,6 @@ class TicketUpdate(Base):
 
 
     # Identify what kind of activity occurred.
-    #
     # Supported types currently include:
     #
     # - Customer message

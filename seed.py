@@ -36,6 +36,9 @@ with SessionLocal() as db:
             contact_name="Maya Chen",
             email="maya@acme.example",
             account_tier="Enterprise",
+
+            # This account is currently stable.
+            health_status="Healthy",
         )
 
         northstar = Customer(
@@ -43,6 +46,9 @@ with SessionLocal() as db:
             contact_name="Jordan Patel",
             email="jordan@northstar.example",
             account_tier="Growth",
+
+            # This account needs additional follow-up.
+            health_status="At Risk",
         )
 
         db.add_all([acme, northstar])

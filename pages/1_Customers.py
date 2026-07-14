@@ -38,6 +38,19 @@ with st.form("new_customer", clear_on_submit=True):
         ["Standard", "Growth", "Enterprise"],
     )
 
+    # Record the current health of the customer account.
+    #
+    # This gives the post-sales team a quick way to identify accounts that may
+    # need follow-up, escalation, or additional support.
+    health_status = st.selectbox(
+        "Health status",
+        [
+            "Healthy",
+            "At Risk",
+            "Critical",
+        ],
+    )
+
     submitted = st.form_submit_button("Add customer")
 
     if submitted:
@@ -58,6 +71,9 @@ with st.form("new_customer", clear_on_submit=True):
                     contact_name=contact_name.strip(),
                     email=email.strip(),
                     account_tier=account_tier,
+
+                    # Save the selected account-health value.
+                    health_status=health_status,
                 )
 
                 db.add(customer)
@@ -101,7 +117,9 @@ else:
                     f"**Email:** "
                     f"{customer.email}  \n"
                     f"**Account tier:** "
-                    f"{customer.account_tier}"
+                    f"{customer.account_tier}  \n"
+                    f"**Health:** "
+                    f"{customer.health_status}"
                 )
 
             with action_column:

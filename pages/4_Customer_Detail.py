@@ -213,6 +213,12 @@ with customer_column:
         f"{selected_customer.account_tier}"
     )
 
+    # Display the current overall condition of the customer account.
+    st.write(
+        f"**Health status:** "
+        f"{selected_customer.health_status}"
+    )
+
     st.write(
         f"**Customer since:** "
         f"{selected_customer.created_at:%Y-%m-%d}"
@@ -250,6 +256,49 @@ with metrics_column:
 
 st.divider()
 
+
+# Define the valid customer-health values.
+health_choices = [
+    "Healthy",
+    "At Risk",
+    "Critical",
+]
+
+
+# Allow the user to change the account's current health status.
+new_health_status = st.selectbox(
+    "Update health status",
+    health_choices,
+    index=health_choices.index(
+        selected_customer.health_status
+    ),
+)
+
+
+# Save the new health status when the user clicks the button.
+if st.button("Save health status"):
+    with SessionLocal() as db:
+        db_customer = db.get(
+            Customer,
+            selected_customer.id,
+        )
+
+        if db_customer is None:
+            st.error(
+                "The customer could not be found."
+            )
+        else:
+            db_customer.health_status = (
+                new_health_status
+            )
+
+            db.commit()
+
+            st.success(
+                "Customer health status updated."
+            )
+
+            st.rerun()
 
 # Display the customer's tickets.
 st.markdown("### Ticket history")
