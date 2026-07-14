@@ -138,6 +138,17 @@ customer_options = {
 # the subject or description changes. This allows the priority recommendation
 # to update immediately while the user enters the ticket.
 with st.expander("Create ticket", expanded=False):
+
+    # Clear selected ticket-entry fields after a successful submission.
+    #
+    # This must happen before the widgets are created. Streamlit does not allow
+    # widget-backed Session State values to be changed after those widgets have
+    # already been instantiated during the same page run.
+    if st.session_state.pop("clear_ticket_form", False):
+        st.session_state["new_ticket_subject"] = ""
+        st.session_state["new_ticket_description"] = ""
+        st.session_state["new_ticket_assigned_to"] = ""
+
     # Select the customer connected to the new ticket.
     selected_customer = st.selectbox(
         "Customer",
@@ -241,10 +252,8 @@ with st.expander("Create ticket", expanded=False):
 
             st.success("Ticket created.")
 
-            # Clear the ticket-entry widgets after the database commit.
-            st.session_state["new_ticket_subject"] = ""
-            st.session_state["new_ticket_description"] = ""
-            st.session_state["new_ticket_assigned_to"] = ""
+            # Mark the ticket-entry fields to be cleared on the next page run.
+            st.session_state["clear_ticket_form"] = True
 
             # Reload the page so the new ticket appears in the queue.
             st.rerun()
