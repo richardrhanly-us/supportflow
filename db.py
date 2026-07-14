@@ -7,9 +7,12 @@ declarative base used by every database model in the application.
 
 import os
 
+from dotenv import load_dotenv
 from sqlalchemy import create_engine
 from sqlalchemy.orm import DeclarativeBase, sessionmaker
 
+# Load environment variables from the local .env file.
+load_dotenv()
 
 # Read the database connection string from the environment.
 #
@@ -19,13 +22,16 @@ from sqlalchemy.orm import DeclarativeBase, sessionmaker
 DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///supportflow.db")
 
 
-# SQLite requires this option when the same connection may be used across
-# multiple Streamlit execution threads. PostgreSQL does not need it.
-connect_args = (
-    {"check_same_thread": False}
-    if DATABASE_URL.startswith("sqlite")
-    else {}
-)
+# SQLite and PostgreSQL require different connection settings.
+if DATABASE_URL.startswith("sqlite"):
+    connect_args = {
+        "check_same_thread": False,
+    }
+else:
+    # Stop PostgreSQL connection attempts after ten seconds.
+    connect_args = {
+        "connect_timeout": 10,
+    }
 
 
 # The engine manages connections between SQLAlchemy and the database.
